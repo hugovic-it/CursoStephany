@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Security.AccessControl;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +30,21 @@ app.MapGet("/getproduct/{code}", ([FromRoute]string code) => {
 app.MapGet("/getprodutctbyheader" , (HttpRequest request) => {
     return request.Headers["product-code"].ToString();
 });
+
+public static class ProductRepository {
+    public static List<Product> Products { get; set; }
+
+    public static void Add(Product product){
+        if(Products is null){
+            Products = new List<Product>();
+        }
+        Products.Add(product)
+    }
+
+    public static void GetBy(string code){
+        return Products.FirstOrDefault(x => x.Code == code);
+    }
+}
 
 app.Run();
 
