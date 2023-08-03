@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Security.AccessControl;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<ApplicationDbContext>();
+builder.Services.AddSqlServer<ApplicationDbContext>(builder.Configuration["Database:SqlServer"]);
 
 var app = builder.Build();
 var configuration = app.Configuration;
@@ -65,39 +64,3 @@ public static class ProductRepository {
         Products.Remove(product);
     }
 }
-
-public class Category{
-    public int Id { get; set; }
-    public string Name { get; set; }
-}
-public class Tag{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public int ProductId { get; set; }
-}
-public class Product{
-    public int Id { get; set; }
-    public string? Code { get; set; }
-    public string? Name { get; set; }
-    public string? Description { get; set; }
-    public int CategoryId { get; set; }
-    public Category Category { get; set; }
-    public List<Tag> Tags { get; set; }
-}
-
-public class ApplicationDbContext : DbContext {
-    public DbSet<Product> Products { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder builder)
-    {
-        builder.Entity<Product>()
-            .Property(p => p.Description).HasMaxLength(500).IsRequired(false);
-        builder.Entity<Product>()
-            .Property(p => p.Name).HasMaxLength(120).IsRequired(true);
-        builder.Entity<Product>()
-            .Property(p => p.Code).HasMaxLength(20).IsRequired(true);
-    }
-    protected override void OnConfiguring(DbContextOptionsBuilder options) 
-        => options.UseSqlServer("Server=localhost;Database=Products;User Id=sa;Password=Root@123456;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES");
-}
-
