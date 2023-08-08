@@ -29,10 +29,14 @@ app.MapPost("/products", (ProductRequest productRequest, ApplicationDbContext co
     return Results.Created($"/products/{product.Id}", product.Id);
 });
 
-app.MapGet("/products/{code}", ([FromRoute]string code) => {
-    var product = ProductRepository.GetBy(code);
-    if(product != null)
+app.MapGet("/products/{id}", ([FromRoute]int id, ApplicationDbContext context) => {
+    var product = context.Products
+    .Include(p => p.Category)
+    .Include(p => p.Tags)
+    .Where(p => p.Id == id).First();
+    if(product != null){
         return Results.Ok(product);
+    }
     return Results.NotFound();
 
 });
