@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Security.AccessControl;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
  
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,9 +42,24 @@ app.MapGet("/products/{id}", ([FromRoute]int id, ApplicationDbContext context) =
 
 });
 
-app.MapPut("/products", (Product product) => {
-    var productSaved = ProductRepository.GetBy(product.Code);
-    productSaved.Name = product.Name;
+app.MapPut("/products/{id}", ([FromRoute] int id, ProductRequest productRequest,ApplicationDbContext context) => {
+    var product = context.Products
+        .Include(p => p.Tags)
+        .Where(p => p.Id == id).First();
+    var category = context.Category.Where(category => category.Id == productRequest.CategoryId).First();
+
+    product.Code = productRequest.Code;
+    product.Name = productRequest.Name;
+    product.Description = productRequest.Description;
+    product.Category = category;
+    product.Tags = new List<Tag>();
+    if(productRequest.Tags != null ){
+        product.Tags = new List<Tag>();
+        foreach (var item in productRequest.Tags){
+            product.Tags.Add(new Tag{Name = item});
+        }
+    }
+    context.SaveChanges();
     return Results.Ok();
 });
 
